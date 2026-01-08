@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3×3×3 Alphabet Tensor with Hamming Swarm</title>
+    <script src="https://enkimute.github.io/ganja.js/ganja.js"></script>
+    <style>
+        body { margin: 0; background: #0a0a0a; color: #e0e0e0; font-family: 'SF Mono', monospace; }
+        .controls { 
+            position: fixed; top: 10px; left: 10px; z-index: 100; 
+            background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px;
+            border: 1px solid #333; max-width: 350px;
+        }
+        .legend { 
+            position: fixed; top: 10px; right: 10px; z-index: 100;
+            background: rgba(0,0,0,0.8); padding: 15px; border-radius: 8px;
+            border: 1px solid #333; max-width: 300px;
+        }
+        h3 { margin: 0 0 10px 0; color: #6CEC13; }
+        .stat { margin: 5px 0; font-size: 12px; }
+        .glyph { font-size: 24px; margin: 5px 0; }
+        button { 
+            background: #2a2a2a; color: #e0e0e0; border: 1px solid #444;
+            padding: 5px 10px; margin: 5px; border-radius: 4px; cursor: pointer;
+        }
+        button:hover { background: #3a3a3a; }
+        canvas { width: 100%; height: 100vh; }
+        .tensor-row { display: flex; gap: 5px; margin: 2px 0; }
+        .cell { 
+            width: 20px; height: 20px; display: inline-flex; align-items: center; 
+            justify-content: center; font-size: 10px; border: 1px solid #333;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+<div class="controls">
+    <h3>🎨 3×3×3 Alphabet Tensor</h3>
+    <div class="stat"><b>Structure:</b> 27 positions (26 letters + 1 sigil 🌈)</div>
+    <div class="stat"><b>Hamming Distance:</b> <span id="hamming-info">0</span></div>
+    <div class="stat"><b>GF(3) Trit Sum:</b> <span id="trit-sum">0</span></div>
+    <div class="stat"><b>Current Seed:</b> <span id="seed-display">42</span></div>
+    
+    <div style="margin-top: 10px;">
+        <button onclick="changeSeed()">🎲 New Seed</button>
+        <button onclick="toggleAnimation()"><span id="anim-btn">⏸ Pause</span></button>
+        <button onclick="resetView()">🔄 Reset</button>
+    </div>
+    
+    <div class="glyph">
+        <b>Selected:</b> <span id="selected-glyph">🌈</span>
+    </div>
+    
+    <div style="margin-top: 10px; font-size: 11px;">
+        <b>Tensor Slices (z-axis):</b>
+        <div id="tensor-viz"></div>
+    </div>
+</div>
+
+<div class="legend">
+    <h3>⚛️ Hamming Swarm</h3>
+    <div class="stat">
+        <b>Encoding:</b> Each letter → 5-bit binary<br>
+        <code>A=00000, B=00001, ..., Z=11001, 🌈=11010</code>
+    </div>
+    <div class="stat">
+        <b>Hamming Distance:</b> # of bit flips<br>
+        <code>d(A,B) = 1, d(A,Z) = 4</code>
+    </div>
+    <div class="stat">
+        <b>Swarm Connections:</b><br>
+        • <span style="color: #851BE4;">Purple</span>: d=1 (neighbors)<br>
+        • <span style="color: #37C0C8;">Teal</span>: d=2 (cousins)<br>
+        • <span style="color: #6CEC13;">Green</span>: d=3 (distant)<br>
+    </div>
+    <div class="stat">
+        <b>3×3×3 Mapping:</b><br>
+        Position (x,y,z) → Letter → Color<br>
+        <code>(0,0,0)=A, (2,2,2)=🌈</code>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// Gay-TOFU Color System
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const PHI2 = 1.3247179572447460; // Plastic constant
+
+function hslToRgb(h, s, l) {
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const hp = h / 60;
+    const x = c * (1 - Math.abs((hp % 2) - 1));
+    let r1 = 0, g1 = 0, b1 = 0;
+    
+    if (hp >= 0 && hp < 1) [r1, g1, b1] = [c, x, 0];
+    else if (hp >= 1 && hp < 2) [r1, g1, b1] = [x, c, 0];
+    else if (hp >= 2 && hp < 3) [r1, g1, b1] = [0, c, x];
+    else if (hp >= 3 && hp < 4) [r1, g1, b1] = [0, x, c];
+    else if (hp >= 4 && hp < 5) [r1, g1, b1] = [x, 0, c];
+    else if (hp >= 5 && hp < 6) [r1, g1, b1] = [c, 0, x];
+    
+    const m = l - c / 2;
+    return [r1 + m, g1 + m, b1 + m];
+}
+
+function plasticColor(n, seed) {
+    const seedNorm = (seed % 1000000) / 1000000;
+    const h = (((seedNorm + n / PHI2) % 1.0) * 360);
+    const s = (((seedNorm + n / (PHI2 * PHI2)) % 1.0) * 0.5) + 0.5;
+    return hslToRgb(h, s, 0.55);
+}
+
+function rgbToHex(r, g, b) {
+    const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function tritFromHue(hue) {
+    const sector = Math.floor(hue / 120) % 3;
+    return sector === 0 ? 1 : sector === 1 ? 0 : -1; // +1, 0, -1
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 3×3×3 Tensor Alphabet Mapping
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ🌈'.split('');
+
+// Map position (x,y,z) → index → letter
+function positionToLetter(x, y, z) {
+    const index = x + y * 3 + z * 9;
+    return index < ALPHABET.length ? ALPHABET[index] : null;
+}
+
+// Map letter → position (x,y,z)
+function letterToPosition(letter) {
+    const index = ALPHABET.indexOf(letter);
+    if (index === -1) return null;
+    return {
+        x: index % 3,
+        y: Math.floor(index / 3) % 3,
+        z: Math.floor(index / 9)
+    };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Hamming Distance for 5-bit encoding
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function letterToBinary(letter) {
+    const index = ALPHABET.indexOf(letter);
+    return index.toString(2).padStart(5, '0');
+}
+
+function hammingDistance(letter1, letter2) {
+    const bin1 = letterToBinary(letter1);
+    const bin2 = letterToBinary(letter2);
+    let distance = 0;
+    for (let i = 0; i < 5; i++) {
+        if (bin1[i] !== bin2[i]) distance++;
+    }
+    return distance;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Ganja.js 3D PGA Visualization
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let currentSeed = 42;
+let animationRunning = true;
+let selectedLetter = '🌈';
+
+Algebra(3,0,1,()=>{
+    const P = (x, y, z) => 1e123 - x*1e012 + y*1e013 + z*1e023;
+    const L = (p1, p2) => p1 & p2; // Line between two points
+    
+    let camera = 0e0;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Render tensor visualization
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    function renderTensorViz() {
+        const viz = document.getElementById('tensor-viz');
+        let html = '';
+        
+        for (let z = 0; z < 3; z++) {
+            html += `<div style="margin: 5px 0; font-size: 10px;"><b>z=${z}</b></div>`;
+            for (let y = 0; y < 3; y++) {
+                html += '<div class="tensor-row">';
+                for (let x = 0; x < 3; x++) {
+                    const letter = positionToLetter(x, y, z);
+                    if (letter) {
+                        const index = ALPHABET.indexOf(letter);
+                        const [r, g, b] = plasticColor(index + 1, currentSeed);
+                        const color = rgbToHex(r, g, b);
+                        html += `<div class="cell" style="background: ${color}; color: ${letter === '🌈' ? '#fff' : '#000'}">${letter}</div>`;
+                    }
+                }
+                html += '</div>';
+            }
+        }
+        
+        viz.innerHTML = html;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Main visualization
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    document.body.appendChild(this.graph(
+        () => {
+            if (!animationRunning) return;
+            
+            // Rotate camera
+            const time = performance.now() / 3000;
+            camera.set((1 - 1e03) * (Math.cos(time) * 1.5 + Math.sin(time) * 1e13 * 1.5));
+            
+            // Calculate trit sum
+            let tritSum = 0;
+            ALPHABET.forEach((letter, i) => {
+                const [r, g, b] = plasticColor(i + 1, currentSeed);
+                const h = (((currentSeed % 1000000) / 1000000 + (i + 1) / PHI2) % 1.0) * 360;
+                tritSum += tritFromHue(h);
+            });
+            
+            document.getElementById('trit-sum').textContent = tritSum;
+            document.getElementById('seed-display').textContent = currentSeed;
+            
+            // Calculate Hamming distance to selected letter
+            const selectedPos = letterToPosition(selectedLetter);
+            const hamming = hammingDistance('A', selectedLetter);
+            document.getElementById('hamming-info').textContent = `d(A, ${selectedLetter}) = ${hamming}`;
+            document.getElementById('selected-glyph').textContent = selectedLetter;
+            
+            // Build visualization elements
+            const elements = [];
+            
+            // Draw all 27 points with colors
+            ALPHABET.forEach((letter, i) => {
+                const pos = letterToPosition(letter);
+                if (!pos) return;
+                
+                const [r, g, b] = plasticColor(i + 1, currentSeed);
+                const color = parseInt(rgbToHex(r, g, b).slice(1), 16);
+                
+                // Scale and center positions
+                const scale = 0.8;
+                const point = P(
+                    (pos.x - 1) * scale,
+                    (pos.y - 1) * scale,
+                    (pos.z - 1) * scale
+                );
+                
+                elements.push(color, point, letter);
+            });
+            
+            // Draw Hamming swarm connections from selected letter
+            const selectedPos = letterToPosition(selectedLetter);
+            if (selectedPos) {
+                ALPHABET.forEach((letter, i) => {
+                    const pos = letterToPosition(letter);
+                    if (!pos || letter === selectedLetter) return;
+                    
+                    const hamming = hammingDistance(selectedLetter, letter);
+                    
+                    // Only draw connections up to distance 3
+                    if (hamming <= 3) {
+                        const scale = 0.8;
+                        const p1 = P(
+                            (selectedPos.x - 1) * scale,
+                            (selectedPos.y - 1) * scale,
+                            (selectedPos.z - 1) * scale
+                        );
+                        const p2 = P(
+                            (pos.x - 1) * scale,
+                            (pos.y - 1) * scale,
+                            (pos.z - 1) * scale
+                        );
+                        
+                        // Color by Hamming distance
+                        const lineColor = hamming === 1 ? 0x851BE4 : // Purple
+                                         hamming === 2 ? 0x37C0C8 : // Teal
+                                         0x6CEC13; // Green
+                        
+                        elements.push(lineColor, L(p1, p2));
+                    }
+                });
+            }
+            
+            return [`3×3×3 Alphabet Tensor [seed=${currentSeed}]`].concat(elements);
+        },
+        { 
+            animate: true, 
+            grid: 1, 
+            labels: 1, 
+            camera,
+            pointRadius: 0.08,
+            lineWidth: 2
+        }
+    ));
+    
+    renderTensorViz();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UI Controls
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function changeSeed() {
+    currentSeed = Math.floor(Math.random() * 1000000);
+    const viz = document.getElementById('tensor-viz');
+    let html = '';
+    
+    for (let z = 0; z < 3; z++) {
+        html += `<div style="margin: 5px 0; font-size: 10px;"><b>z=${z}</b></div>`;
+        for (let y = 0; y < 3; y++) {
+            html += '<div class="tensor-row">';
+            for (let x = 0; x < 3; x++) {
+                const letter = positionToLetter(x, y, z);
+                if (letter) {
+                    const index = ALPHABET.indexOf(letter);
+                    const [r, g, b] = plasticColor(index + 1, currentSeed);
+                    const color = rgbToHex(r, g, b);
+                    html += `<div class="cell" style="background: ${color}; color: ${letter === '🌈' ? '#fff' : '#000'}; cursor: pointer;" onclick="selectLetter('${letter}')">${letter}</div>`;
+                }
+            }
+            html += '</div>';
+        }
+    }
+    
+    viz.innerHTML = html;
+}
+
+function toggleAnimation() {
+    animationRunning = !animationRunning;
+    document.getElementById('anim-btn').textContent = animationRunning ? '⏸ Pause' : '▶️ Play';
+}
+
+function resetView() {
+    currentSeed = 42;
+    selectedLetter = '🌈';
+    changeSeed();
+}
+
+function selectLetter(letter) {
+    selectedLetter = letter;
+}
+
+// Make functions global
+window.changeSeed = changeSeed;
+window.toggleAnimation = toggleAnimation;
+window.resetView = resetView;
+window.selectLetter = selectLetter;
+</script>
+</body>
+</html>

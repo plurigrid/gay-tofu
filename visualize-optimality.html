@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Why Plastic Constant is 2D Optimal</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    h1 {
+      background: linear-gradient(135deg, #851BE4, #37C0C8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+    .section {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    canvas {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: white;
+    }
+    .stats {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #2a2a2a;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .explanation {
+      background: #2a2a3a;
+      border-left: 4px solid #851BE4;
+      padding: 1rem;
+      margin: 2rem 0;
+      border-radius: 4px;
+    }
+    code {
+      background: #2a2a2a;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      color: #6CEC13;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌈 Why Plastic Constant is 2D Optimal</h1>
+    
+    <div class="explanation">
+      <strong>Mathematical Principle:</strong><br>
+      For optimal uniform coverage in n dimensions, use the root of x^(n+1) = x + 1<br><br>
+      
+      • <strong>Golden Ratio</strong> (φ ≈ 1.618): x² = x + 1 → Optimal for <strong>1D</strong> (just hue)<br>
+      • <strong>Plastic Constant</strong> (φ₂ ≈ 1.325): x³ = x + 1 → Optimal for <strong>2D</strong> (hue + saturation)<br><br>
+      
+      Colors are effectively 2D because we care about <code>(hue, saturation)</code> while keeping lightness constant.
+    </div>
+    
+    <div class="comparison">
+      <div class="section">
+        <h2>Golden Ratio (1D Optimal)</h2>
+        <p>Only rotates hue, saturation fixed at 70%</p>
+        <canvas id="golden-canvas"></canvas>
+        <div class="stats" id="golden-stats"></div>
+      </div>
+      
+      <div class="section">
+        <h2>Plastic Constant (2D Optimal)</h2>
+        <p>Rotates hue AND varies saturation</p>
+        <canvas id="plastic-canvas"></canvas>
+        <div class="stats" id="plastic-stats"></div>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>Comparison: Average Minimum Distance to Nearest Neighbor</h2>
+      <p>Higher = Better coverage (points don't cluster)</p>
+      <canvas id="comparison-canvas" style="height: 200px;"></canvas>
+    </div>
+    
+    <div class="explanation">
+      <strong>Why This Matters:</strong><br><br>
+      
+      In the 2D (hue, saturation) space:<br>
+      • <strong>Plastic Constant</strong> spreads points more evenly<br>
+      • Golden Ratio only varies hue (creates a ring, not area coverage)<br>
+      • Result: Better visual distinction between colors<br><br>
+      
+      <strong>Formula:</strong><br>
+      <code>hue = (seed + n / φ₂) mod 1</code><br>
+      <code>sat = (seed + n / φ₂²) mod 1</code><br><br>
+      
+      The key is <code>φ₂²</code> - squaring creates the second dimension with maximal independence!
+    </div>
+  </div>
+
+  <script>
+    const PHI = 1.618033988749895;
+    const PHI2 = 1.3247179572447460;
+    
+    function hslToRgb(h, s, l) {
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const hp = h / 60;
+      const x = c * (1 - Math.abs((hp % 2) - 1));
+      
+      let r1 = 0, g1 = 0, b1 = 0;
+      if (hp >= 0 && hp < 1) [r1, g1, b1] = [c, x, 0];
+      else if (hp >= 1 && hp < 2) [r1, g1, b1] = [x, c, 0];
+      else if (hp >= 2 && hp < 3) [r1, g1, b1] = [0, c, x];
+      else if (hp >= 3 && hp < 4) [r1, g1, b1] = [0, x, c];
+      else if (hp >= 4 && hp < 5) [r1, g1, b1] = [x, 0, c];
+      else if (hp >= 5 && hp < 6) [r1, g1, b1] = [c, 0, x];
+      
+      const m = l - c / 2;
+      return [r1 + m, g1 + m, b1 + m];
+    }
+    
+    function goldenColor(n, seed = 0) {
+      const h = ((seed + n / PHI) % 1.0) * 360;
+      const s = 0.7; // Fixed saturation
+      return { h, s };
+    }
+    
+    function plasticColor(n, seed = 0) {
+      const h = ((seed + n / PHI2) % 1.0) * 360;
+      const s = ((seed + n / (PHI2 * PHI2)) % 1.0) * 0.5 + 0.5; // Variable saturation
+      return { h, s };
+    }
+    
+    function drawColorSpace(canvasId, generator, n = 100) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width = 600;
+      const height = canvas.height = 400;
+      
+      // Clear
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, width, height);
+      
+      // Draw axes
+      ctx.strokeStyle = '#ccc';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(50, 0);
+      ctx.lineTo(50, height);
+      ctx.moveTo(0, height - 50);
+      ctx.lineTo(width, height - 50);
+      ctx.stroke();
+      
+      // Labels
+      ctx.fillStyle = 'black';
+      ctx.font = '12px monospace';
+      ctx.fillText('Hue →', width - 60, height - 30);
+      ctx.save();
+      ctx.translate(20, 60);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Saturation →', 0, 0);
+      ctx.restore();
+      
+      // Generate and plot points
+      const points = [];
+      for (let i = 1; i <= n; i++) {
+        const { h, s } = generator(i, 0);
+        const x = 50 + (h / 360) * (width - 100);
+        const y = height - 50 - (s * (height - 100));
+        
+        const [r, g, b] = hslToRgb(h, s, 0.5);
+        const color = `rgb(${r*255}, ${g*255}, ${b*255})`;
+        
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        points.push({ x: h, y: s, screenX: x, screenY: y });
+      }
+      
+      return points;
+    }
+    
+    function calculateStats(points) {
+      // Calculate average minimum distance to nearest neighbor
+      let totalMinDist = 0;
+      
+      for (let i = 0; i < points.length; i++) {
+        let minDist = Infinity;
+        
+        for (let j = 0; j < points.length; j++) {
+          if (i === j) continue;
+          
+          // Circular distance for hue (wraps at 360)
+          let dh = Math.abs(points[i].x - points[j].x);
+          if (dh > 180) dh = 360 - dh;
+          dh /= 360; // Normalize to [0, 1]
+          
+          const ds = Math.abs(points[i].y - points[j].y);
+          const dist = Math.sqrt(dh * dh + ds * ds);
+          
+          if (dist < minDist) minDist = dist;
+        }
+        
+        totalMinDist += minDist;
+      }
+      
+      const avgMinDist = totalMinDist / points.length;
+      
+      // Calculate saturation variance (how much saturation varies)
+      const sats = points.map(p => p.y);
+      const avgSat = sats.reduce((a, b) => a + b) / sats.length;
+      const variance = sats.reduce((sum, s) => sum + Math.pow(s - avgSat, 2), 0) / sats.length;
+      
+      return { avgMinDist, variance, avgSat };
+    }
+    
+    function drawComparison(goldenStats, plasticStats) {
+      const canvas = document.getElementById('comparison-canvas');
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width = 600;
+      const height = canvas.height = 200;
+      
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, width, height);
+      
+      // Draw bars
+      const maxDist = Math.max(goldenStats.avgMinDist, plasticStats.avgMinDist);
+      
+      // Golden bar
+      ctx.fillStyle = '#FFB84D';
+      const goldenBarHeight = (goldenStats.avgMinDist / maxDist) * 100;
+      ctx.fillRect(150, height - 50 - goldenBarHeight, 100, goldenBarHeight);
+      
+      // Plastic bar
+      ctx.fillStyle = '#851BE4';
+      const plasticBarHeight = (plasticStats.avgMinDist / maxDist) * 100;
+      ctx.fillRect(350, height - 50 - plasticBarHeight, 100, plasticBarHeight);
+      
+      // Labels
+      ctx.fillStyle = 'black';
+      ctx.font = '14px monospace';
+      ctx.fillText('Golden (1D)', 150, height - 20);
+      ctx.fillText('Plastic (2D)', 350, height - 20);
+      
+      // Values
+      ctx.font = 'bold 16px monospace';
+      ctx.fillStyle = '#FFB84D';
+      ctx.fillText(goldenStats.avgMinDist.toFixed(4), 165, height - 60 - goldenBarHeight);
+      ctx.fillStyle = '#851BE4';
+      ctx.fillText(plasticStats.avgMinDist.toFixed(4), 365, height - 60 - plasticBarHeight);
+      
+      // Winner label
+      if (plasticStats.avgMinDist > goldenStats.avgMinDist) {
+        ctx.fillStyle = '#851BE4';
+        ctx.font = 'bold 18px monospace';
+        ctx.fillText('✓ Winner!', 350, 40);
+        
+        const improvement = ((plasticStats.avgMinDist / goldenStats.avgMinDist - 1) * 100).toFixed(1);
+        ctx.font = '14px monospace';
+        ctx.fillText(`${improvement}% better coverage`, 330, 65);
+      }
+    }
+    
+    // Generate visualizations
+    const goldenPoints = drawColorSpace('golden-canvas', goldenColor, 100);
+    const plasticPoints = drawColorSpace('plastic-canvas', plasticColor, 100);
+    
+    const goldenStats = calculateStats(goldenPoints);
+    const plasticStats = calculateStats(plasticPoints);
+    
+    document.getElementById('golden-stats').innerHTML = `
+      <strong>Statistics:</strong><br>
+      Avg Min Distance: <code>${goldenStats.avgMinDist.toFixed(4)}</code><br>
+      Saturation Variance: <code>${goldenStats.variance.toFixed(4)}</code> (low = all similar)<br>
+      Avg Saturation: <code>${goldenStats.avgSat.toFixed(2)}</code>
+    `;
+    
+    document.getElementById('plastic-stats').innerHTML = `
+      <strong>Statistics:</strong><br>
+      Avg Min Distance: <code>${plasticStats.avgMinDist.toFixed(4)}</code> ✨<br>
+      Saturation Variance: <code>${plasticStats.variance.toFixed(4)}</code> (high = varied)<br>
+      Avg Saturation: <code>${plasticStats.avgSat.toFixed(2)}</code>
+    `;
+    
+    drawComparison(goldenStats, plasticStats);
+    
+    const improvement = ((plasticStats.avgMinDist / goldenStats.avgMinDist - 1) * 100).toFixed(1);
+    console.log(`Plastic Constant is ${improvement}% better for 2D color coverage!`);
+  </script>
+</body>
+</html>

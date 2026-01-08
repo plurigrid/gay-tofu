@@ -43,7 +43,7 @@ TypeScript (~/ies/gay-tofu/)
      - 45+ tests, all passing
   ✅ example.ts (150 lines)
      - 6 real-world examples
-  ✅ demo.html (400 lines)
+  ✅ world.html (400 lines)
      - Interactive browser demo
   ✅ run-ts-example.mjs (150 lines)
      - Node.js runner
@@ -102,7 +102,7 @@ QUICK START
    node run-ts-example.mjs
 
 2. Browser demo:
-   open demo.html
+   open world.html
 
 3. Verify implementations:
    node compare-implementations.mjs

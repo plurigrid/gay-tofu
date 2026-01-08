@@ -13,7 +13,7 @@ Location: `~/ies/gay-tofu/`
 ### 🚀 Getting Started (5 minutes)
 
 1. **Fastest Demo**: `node run-ts-example.mjs`
-2. **Visual Demo**: `open demo.html`
+2. **Visual Demo**: `open world.html`
 3. **Verification**: `node compare-implementations.mjs`
 
 👉 **New here?** Start with [QUICKSTART.md](QUICKSTART.md)
@@ -41,7 +41,7 @@ Location: `~/ies/gay-tofu/`
 | **[example.ts](example.ts)** | Usage examples | 4.8K | ✅ Ready |
 | **[run-ts-example.mjs](run-ts-example.mjs)** | Node.js runner | 4.7K | ✅ Ready |
 | **[compare-implementations.mjs](compare-implementations.mjs)** | Cross-platform verification | 3.8K | ✅ Ready |
-| **[demo.html](demo.html)** | Interactive browser demo | 12K | ✅ Ready |
+| **[world.html](world.html)** | Interactive browser demo | 12K | ✅ Ready |
 | **[package.json](package.json)** | npm/deno config | 891B | ✅ Ready |
 | **[verify-bijection.sh](verify-bijection.sh)** | Bash verification script | 2.3K | ✅ Ready |
 
@@ -108,7 +108,7 @@ node run-ts-example.mjs
 
 ```bash
 cd ~/ies/gay-tofu
-open demo.html
+open world.html
 ```
 
 **Features**: Interactive color generation, team identity, bijection testing
@@ -289,7 +289,7 @@ Collisions in 1000 colors: <10
 │   ├── gay-tofu.ts           ⭐ Main implementation
 │   ├── gay-tofu.test.ts      ⭐ Test suite
 │   ├── example.ts            Usage examples
-│   ├── demo.html             ⭐ Interactive demo
+│   ├── world.html             ⭐ Interactive demo
 │   ├── run-ts-example.mjs    Node.js runner
 │   ├── compare-implementations.mjs  Verification
 │   ├── verify-bijection.sh   Bash verification
@@ -354,10 +354,10 @@ println(handle_mcp_request("gay_plastic_thread", "{\"steps\":5,\"seed\":42}"));
 ### Open Interactive Demo
 
 ```bash
-open demo.html
+open world.html
 # or
 python3 -m http.server 8000 &
-open http://localhost:8000/demo.html
+open http://localhost:8000/world.html
 ```
 
 ---
@@ -419,7 +419,7 @@ deno test gay-tofu.test.ts
 ### Code
 - **Main Implementation**: gay-tofu.ts
 - **Tests**: gay-tofu.test.ts
-- **Demo**: demo.html
+- **Demo**: world.html
 - **Julia**: low-discrepancy-sequences/
 
 ### External
@@ -434,7 +434,7 @@ deno test gay-tofu.test.ts
 
 ### Today
 1. ✅ Run demos: `node run-ts-example.mjs`
-2. ✅ Open browser demo: `open demo.html`
+2. ✅ Open browser demo: `open world.html`
 3. ✅ Verify implementations: `node compare-implementations.mjs`
 
 ### This Week

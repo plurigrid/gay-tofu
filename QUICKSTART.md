@@ -132,7 +132,7 @@ cd ~/ies/gay-tofu
 node run-ts-example.mjs
 
 # 2. Open demo in browser
-open demo.html
+open world.html
 
 # 3. Verify cross-platform
 node compare-implementations.mjs

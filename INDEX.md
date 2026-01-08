@@ -14,7 +14,9 @@ Location: `~/ies/gay-tofu/`
 
 1. **Fastest Demo**: `node run-ts-example.mjs`
 2. **Visual Demo**: `open world.html`
-3. **Verification**: `node compare-implementations.mjs`
+3. **Hamming Swarm**: `open alphabet-tensor.html`
+4. **Error Correction**: `open hamming-codec.html`
+5. **Verification**: `node compare-implementations.mjs`
 
 👉 **New here?** Start with [QUICKSTART.md](QUICKSTART.md)
 
@@ -28,6 +30,10 @@ Location: `~/ies/gay-tofu/`
 | **[ONEFPS_INTEGRATION.md](ONEFPS_INTEGRATION.md)** | 1fps.video integration guide | 14K | Integration |
 | **[STATUS.md](STATUS.md)** | Julia implementation status | 10K | Reference |
 | **[FINAL_STATUS.md](FINAL_STATUS.md)** | Complete project report | 13K | Comprehensive |
+| **[WHY_PLASTIC_2D_OPTIMAL.md](WHY_PLASTIC_2D_OPTIMAL.md)** | Mathematical proof of optimality | 7.6K | Math Deep-Dive |
+| **[HAMMING_SWARM.md](HAMMING_SWARM.md)** | Error correction structure | 9.3K | Advanced |
+| **[VISUALIZATIONS.md](VISUALIZATIONS.md)** | Interactive demo guide | 8.5K | Visual Guide |
+| **[DEVELOPMENT_TIMELINE.md](DEVELOPMENT_TIMELINE.md)** | Project history via beeper-mcp | 11K | Historical |
 | **[INDEX.md](INDEX.md)** | This file - navigation hub | - | Navigation |
 
 ### 💻 Implementation Files
@@ -42,6 +48,9 @@ Location: `~/ies/gay-tofu/`
 | **[run-ts-example.mjs](run-ts-example.mjs)** | Node.js runner | 4.7K | ✅ Ready |
 | **[compare-implementations.mjs](compare-implementations.mjs)** | Cross-platform verification | 3.8K | ✅ Ready |
 | **[world.html](world.html)** | Interactive browser demo | 12K | ✅ Ready |
+| **[alphabet-tensor.html](alphabet-tensor.html)** | 3×3×3 Hamming swarm viz | 15K | ✅ Ready |
+| **[hamming-codec.html](hamming-codec.html)** | Error-correcting codec demo | 19K | ✅ Ready |
+| **[visualize-optimality.html](visualize-optimality.html)** | Plastic constant proof | 10K | ✅ Ready |
 | **[package.json](package.json)** | npm/deno config | 891B | ✅ Ready |
 | **[verify-bijection.sh](verify-bijection.sh)** | Bash verification script | 2.3K | ✅ Ready |
 
@@ -63,14 +72,16 @@ Location: `~/ies/gay-tofu/low-discrepancy-sequences/`
 ### Code & Documentation
 
 ```
-Total Lines:        7,228+
+Total Lines:        8,400+
   Julia:            3,850+
-  TypeScript:       1,378
-  Documentation:    2,000+
+  TypeScript:       1,956
+  Visualizations:   1,594
+  Documentation:    2,500+
 
 Tests:              45+ (all passing)
 Sequences:          8 (Julia), 3 (TypeScript)
 MCP Tools:          10
+Interactive Demos:  4 (world, tensor, codec, optimality)
 ```
 
 ### Verification Status
@@ -275,12 +286,15 @@ Collisions in 1000 colors: <10
 
 ```
 ~/ies/gay-tofu/
-├── Documentation (74K)
+├── Documentation (100K)
 │   ├── INDEX.md              ⭐ You are here
 │   ├── QUICKSTART.md         ⭐ Start here
 │   ├── README.md             Project overview
 │   ├── TYPESCRIPT_PORT.md    TypeScript API docs
 │   ├── ONEFPS_INTEGRATION.md 1fps.video integration
+│   ├── WHY_PLASTIC_2D_OPTIMAL.md  Mathematical proof
+│   ├── HAMMING_SWARM.md      Error correction theory
+│   ├── DEVELOPMENT_TIMELINE.md  Project history
 │   ├── STATUS.md             Julia implementation
 │   ├── FINAL_STATUS.md       Complete report
 │   └── LAZYBJJ_SPEC.md       [Other project]
@@ -289,11 +303,16 @@ Collisions in 1000 colors: <10
 │   ├── gay-tofu.ts           ⭐ Main implementation
 │   ├── gay-tofu.test.ts      ⭐ Test suite
 │   ├── example.ts            Usage examples
-│   ├── world.html             ⭐ Interactive demo
 │   ├── run-ts-example.mjs    Node.js runner
 │   ├── compare-implementations.mjs  Verification
 │   ├── verify-bijection.sh   Bash verification
 │   └── package.json          npm/deno config
+│
+├── Interactive Visualizations (44K)
+│   ├── world.html            ⭐ Basic color demo
+│   ├── alphabet-tensor.html  ⭐ 3×3×3 Hamming swarm
+│   ├── hamming-codec.html    ⭐ Error correction codec
+│   └── visualize-optimality.html  Plastic constant proof
 │
 └── Julia Implementation (3850+ lines)
     └── low-discrepancy-sequences/

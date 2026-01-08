@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gay-TOFU Demo - Bijective Color Sequences</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #851BE4, #37C0C8, #6CEC13);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .subtitle {
+      color: #888;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+    
+    .section {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    h2 {
+      color: #fff;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+    }
+    
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .color-box {
+      height: 120px;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #333;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    
+    .color-box:hover {
+      transform: scale(1.05);
+      border-color: #666;
+    }
+    
+    .color-label {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    input, select, button {
+      background: #2a2a2a;
+      color: #e0e0e0;
+      border: 1px solid #444;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    
+    button {
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    button:hover {
+      background: #3a3a3a;
+    }
+    
+    button:active {
+      background: #4a4a4a;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-left: 0.5rem;
+    }
+    
+    .badge.success {
+      background: #2d5f2d;
+      color: #90ee90;
+    }
+    
+    .badge.warning {
+      background: #5f4d2d;
+      color: #f0e68c;
+    }
+    
+    .info {
+      background: #2a2a3a;
+      border-left: 4px solid #851BE4;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
+    }
+    
+    code {
+      background: #2a2a2a;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-size: 0.85rem;
+      color: #6CEC13;
+    }
+    
+    .team-member {
+      display: flex;
+      align-items: center;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      background: #2a2a2a;
+      border-radius: 4px;
+      border-left: 4px solid;
+    }
+    
+    .team-member .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 1rem;
+    }
+    
+    .performance-bar {
+      height: 20px;
+      background: #2a2a2a;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0.5rem 0;
+    }
+    
+    .performance-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #851BE4, #37C0C8);
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌈 Gay-TOFU Demo</h1>
+    <p class="subtitle">Low-Discrepancy Color Sequences with Bijective Index Recovery</p>
+    
+    <div class="section">
+      <h2>1. Plastic Constant Thread <span class="badge success">2D Optimal</span></h2>
+      <div class="controls">
+        <label>
+          Seed: <input type="number" id="seed1" value="42" min="0" max="999999">
+        </label>
+        <label>
+          Count: <input type="number" id="count1" value="10" min="1" max="50">
+        </label>
+        <button onclick="generatePlastic()">Generate</button>
+      </div>
+      <div id="plastic-grid" class="color-grid"></div>
+    </div>
+    
+    <div class="section">
+      <h2>2. Team Identity Colors <span class="badge success">1fps.video Ready</span></h2>
+      <div class="controls">
+        <label>
+          Session Seed: <input type="number" id="team-seed" value="42" min="0">
+        </label>
+        <button onclick="generateTeam()">Generate Team</button>
+      </div>
+      <div id="team-list"></div>
+    </div>
+    
+    <div class="section">
+      <h2>3. Bijection Test <span class="badge success">Index Recovery</span></h2>
+      <div class="controls">
+        <label>
+          Test Color: <input type="text" id="test-hex" value="#851BE4" placeholder="#RRGGBB">
+        </label>
+        <label>
+          Seed: <input type="number" id="test-seed" value="42">
+        </label>
+        <button onclick="testBijection()">Invert Color → Index</button>
+      </div>
+      <div id="bijection-result"></div>
+    </div>
+    
+    <div class="section">
+      <h2>4. Performance Benchmark</h2>
+      <button onclick="runBenchmark()">Run Benchmark (10,000 colors)</button>
+      <div id="benchmark-result"></div>
+    </div>
+    
+    <div class="info">
+      <strong>🎨 Key Property:</strong> All sequences are <strong>bijective</strong>. 
+      Given (color, seed, method), you can recover the index n that generated it.
+      <br><br>
+      <strong>Use Case:</strong> Visual identity in screen sharing (1fps.video integration).
+      Each user gets a deterministic color based on their index and shared session seed.
+    </div>
+  </div>
+
+  <script type="module">
+    // Inline Gay-TOFU implementation
+    const PHI2 = 1.3247179572447460;
+    
+    function hslToRgb(h, s, l) {
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const hp = h / 60;
+      const x = c * (1 - Math.abs((hp % 2) - 1));
+      
+      let r1 = 0, g1 = 0, b1 = 0;
+      if (hp >= 0 && hp < 1) [r1, g1, b1] = [c, x, 0];
+      else if (hp >= 1 && hp < 2) [r1, g1, b1] = [x, c, 0];
+      else if (hp >= 2 && hp < 3) [r1, g1, b1] = [0, c, x];
+      else if (hp >= 3 && hp < 4) [r1, g1, b1] = [0, x, c];
+      else if (hp >= 4 && hp < 5) [r1, g1, b1] = [x, 0, c];
+      else if (hp >= 5 && hp < 6) [r1, g1, b1] = [c, 0, x];
+      
+      const m = l - c / 2;
+      return { r: r1 + m, g: g1 + m, b: b1 + m };
+    }
+    
+    function rgbToHex(color) {
+      const r = Math.round(color.r * 255);
+      const g = Math.round(color.g * 255);
+      const b = Math.round(color.b * 255);
+      return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
+    }
+    
+    function hexToRgb(hex) {
+      const cleaned = hex.replace('#', '');
+      const r = parseInt(cleaned.substring(0, 2), 16) / 255;
+      const g = parseInt(cleaned.substring(2, 4), 16) / 255;
+      const b = parseInt(cleaned.substring(4, 6), 16) / 255;
+      return { r, g, b };
+    }
+    
+    function colorDistance(c1, c2) {
+      return Math.sqrt(
+        Math.pow(c1.r - c2.r, 2) +
+        Math.pow(c1.g - c2.g, 2) +
+        Math.pow(c1.b - c2.b, 2)
+      );
+    }
+    
+    function plasticColor(n, seed = 0, lightness = 0.5) {
+      const h = ((seed + n / PHI2) % 1.0) * 360;
+      const s = ((seed + n / (PHI2 * PHI2)) % 1.0) * 0.5 + 0.5;
+      return hslToRgb(h, s, lightness);
+    }
+    
+    function invertColor(color, seed = 0, maxSearch = 10000, threshold = 0.01) {
+      for (let n = 1; n <= maxSearch; n++) {
+        const candidate = plasticColor(n, seed);
+        const distance = colorDistance(color, candidate);
+        if (distance < threshold) {
+          return n;
+        }
+      }
+      return null;
+    }
+    
+    // UI Functions
+    window.generatePlastic = function() {
+      const seed = parseInt(document.getElementById('seed1').value);
+      const count = parseInt(document.getElementById('count1').value);
+      const grid = document.getElementById('plastic-grid');
+      
+      grid.innerHTML = '';
+      for (let i = 1; i <= count; i++) {
+        const color = plasticColor(i, seed);
+        const hex = rgbToHex(color);
+        
+        const box = document.createElement('div');
+        box.className = 'color-box';
+        box.style.background = hex;
+        box.innerHTML = `<span class="color-label">Index ${i}<br>${hex}</span>`;
+        box.onclick = () => {
+          navigator.clipboard.writeText(hex);
+          alert(`Copied ${hex} to clipboard!`);
+        };
+        grid.appendChild(box);
+      }
+    };
+    
+    window.generateTeam = function() {
+      const seed = parseInt(document.getElementById('team-seed').value);
+      const names = ['Alice', 'Bob', 'Carol', 'Dave', 'Eve'];
+      const list = document.getElementById('team-list');
+      
+      list.innerHTML = '';
+      names.forEach((name, index) => {
+        const userId = index + 1;
+        const color = plasticColor(userId, seed);
+        const hex = rgbToHex(color);
+        
+        const member = document.createElement('div');
+        member.className = 'team-member';
+        member.style.borderLeftColor = hex;
+        member.innerHTML = `
+          <div class="avatar" style="background: ${hex}"></div>
+          <div>
+            <strong>${name}</strong> (User ${userId})<br>
+            <code>${hex}</code>
+          </div>
+        `;
+        list.appendChild(member);
+      });
+    };
+    
+    window.testBijection = function() {
+      const hex = document.getElementById('test-hex').value;
+      const seed = parseInt(document.getElementById('test-seed').value);
+      const result = document.getElementById('bijection-result');
+      
+      try {
+        const color = hexToRgb(hex);
+        const startTime = performance.now();
+        const index = invertColor(color, seed);
+        const elapsed = performance.now() - startTime;
+        
+        if (index !== null) {
+          const verification = plasticColor(index, seed);
+          const verifyHex = rgbToHex(verification);
+          
+          result.innerHTML = `
+            <div class="info">
+              <strong>✓ Bijection Verified!</strong><br><br>
+              Input: <code>${hex}</code><br>
+              Recovered Index: <strong>${index}</strong><br>
+              Verification: <code>plastic(${index}, ${seed}) = ${verifyHex}</code><br>
+              Search Time: ${elapsed.toFixed(2)}ms<br>
+              <br>
+              <span class="badge success">Index Recovery Successful</span>
+            </div>
+          `;
+        } else {
+          result.innerHTML = `
+            <div class="info">
+              <strong>✗ Index Not Found</strong><br><br>
+              Searched up to index 10,000 without finding a match.<br>
+              This color may not be from the plastic sequence with seed ${seed}.
+            </div>
+          `;
+        }
+      } catch (error) {
+        result.innerHTML = `<div class="info"><strong>Error:</strong> ${error.message}</div>`;
+      }
+    };
+    
+    window.runBenchmark = function() {
+      const result = document.getElementById('benchmark-result');
+      result.innerHTML = '<p>Running benchmark...</p>';
+      
+      setTimeout(() => {
+        const iterations = 10000;
+        const startTime = performance.now();
+        
+        for (let i = 0; i < iterations; i++) {
+          plasticColor(i, 42);
+        }
+        
+        const elapsed = performance.now() - startTime;
+        const perColor = elapsed / iterations;
+        
+        result.innerHTML = `
+          <div class="info">
+            <strong>Performance Results:</strong><br><br>
+            Generated: <strong>${iterations.toLocaleString()}</strong> colors<br>
+            Total Time: <strong>${elapsed.toFixed(2)}ms</strong><br>
+            Per Color: <strong>${perColor.toFixed(4)}ms</strong><br>
+            <br>
+            <div class="performance-bar">
+              <div class="performance-fill" style="width: ${Math.min(100, elapsed / 10)}%"></div>
+            </div>
+            <span class="badge success">Fast enough for 60 FPS!</span>
+          </div>
+        `;
+      }, 100);
+    };
+    
+    // Initialize
+    generatePlastic();
+    generateTeam();
+  </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "name": "gay-tofu",
+  "version": "0.1.0",
+  "description": "Low-Discrepancy Color Sequences with Trust-On-First-Use Authentication",
+  "type": "module",
+  "main": "gay-tofu.ts",
+  "scripts": {
+    "test": "deno test gay-tofu.test.ts",
+    "test:node": "npx tsx gay-tofu.test.ts",
+    "example": "deno run example.ts",
+    "build": "tsc gay-tofu.ts --outDir dist --declaration",
+    "lint": "deno lint"
+  },
+  "keywords": [
+    "color",
+    "authentication",
+    "tofu",
+    "low-discrepancy",
+    "bijection",
+    "1fps",
+    "screen-sharing",
+    "visual-identity"
+  ],
+  "author": "Plurigrid",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "tsx": "^4.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plurigrid/gay-tofu"
+  },
+  "exports": {
+    ".": {
+      "import": "./gay-tofu.ts",
+      "types": "./gay-tofu.ts"
+    }
+  }
+}
